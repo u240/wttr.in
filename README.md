@@ -7,11 +7,11 @@ representation methods like terminal-oriented ANSI-sequences for console HTTP cl
 
 Originally started as a small project, a wrapper for [wego](https://github.com/schachmat/wego),
 intended to demonstrate the power of the console-oriented services,
-*wttr.in* became a popular weather reporting service, handling tens of millions of queries daily.
+*wttr.in* became a popular weather reporting service, handling tens of millions[¹](#wttrin-usage-stats) of queries daily.
 
 You can see it running here: [wttr.in](https://wttr.in).
 
-[Documentation](https://wttr.in/:help) | [Usage](https://github.com/chubin/wttr.in#usage) | [One-line output](https://github.com/chubin/wttr.in#one-line-output) | [Data-rich output format](https://github.com/chubin/wttr.in#data-rich-output-format-v2) | [Map view](https://github.com/chubin/wttr.in#map-view-v3) | [Output formats](https://github.com/chubin/wttr.in#different-output-formats) | [Moon phases](https://github.com/chubin/wttr.in#moon-phases) | [Internationalization](https://github.com/chubin/wttr.in#internationalization-and-localization) | [Windows issues](https://github.com/chubin/wttr.in#windows-users) | [Installation](https://github.com/chubin/wttr.in#installation)
+[Documentation](https://wttr.in/:help) | [Usage](https://github.com/chubin/wttr.in#usage) | [One-line output](https://github.com/chubin/wttr.in#one-line-output) | [Data-rich output format](https://github.com/chubin/wttr.in#data-rich-output-format-v2) | [Map view](https://github.com/chubin/wttr.in#map-view-v3) | [Output formats](https://github.com/chubin/wttr.in#different-output-formats) | [Moon phases](https://github.com/chubin/wttr.in#moon-phases) | [Internationalization](https://github.com/chubin/wttr.in#internationalization-and-localization) | [Installation](https://github.com/chubin/wttr.in#installation)
 
 ## Usage
 
@@ -21,18 +21,15 @@ You can access the service from a shell or from a Web browser like this:
     Weather for City: Paris, France
 
          \   /     Clear
-          .-.      10 – 11 °C  
-       ― (   ) ―   ↑ 11 km/h  
-          `-’      10 km  
-         /   \     0.0 mm  
+          .-.      10 – 11 °C
+       ― (   ) ―   ↑ 11 km/h
+          `-’      10 km
+         /   \     0.0 mm
 
 
-Here is an actual weather report for your location (it's live!):
+Here is an example weather report:
 
-![Weather Report](https://wttr.in/San-Francisco.png?)
-
-(It's not your actual location - GitHub's CDN hides your real IP address with its own IP address,
-but it's still a live weather report in your language.)
+![Weather Report](share/pics/San_Francisco.png)
 
 Or in PowerShell:
 
@@ -78,7 +75,6 @@ To get detailed information online, you can access the [/:help](https://wttr.in/
 
     $ curl wttr.in/:help
 
-
 ### Weather Units
 
 By default the USCS units are used for the queries from the USA and the metric system for the rest of the world.
@@ -111,6 +107,10 @@ The ANSI and HTML formats are selected based on the User-Agent string.
 To force plain text, which disables colors:
 
     $ curl wttr.in/?T
+
+To restrict output to glyphs available in standard console fonts (e.g. Consolas and Lucida Console):
+
+    $ curl wttr.in/?d
 
 The PNG format can be forced by adding `.png` to the end of the query:
 
@@ -156,6 +156,10 @@ Nuremberg: 🌦 +11⁰C
 ```
 
 Available preconfigured formats: 1, 2, 3, 4 and the custom format using the percent notation (see below).
+* 1: Current weather at location: `🌦 +11⁰C`
+* 2: Current weather at location with more details: `🌦   🌡️+11°C 🌬️↓4km/h`
+* 3: Name of location and current weather at location: `Nuremberg: 🌦 +11⁰C`
+* 4: Name of location and current weather at location with more details: `Nuremberg: 🌦   🌡️+11°C 🌬️↓4km/h`
 
 You can specify multiple locations separated with `:` (for repeating queries):
 
@@ -181,12 +185,15 @@ To specify your own custom output format, use the special `%`-notation:
     h    Humidity,
     t    Temperature (Actual),
     f    Temperature (Feels Like),
+    H    Temperature (High),
+    L    Temperature (Low),
     w    Wind,
     l    Location,
     m    Moon phase 🌑🌒🌓🌔🌕🌖🌗🌘,
     M    Moon day,
     p    Precipitation (mm/3 hours),
     P    Pressure (hPa),
+    e    Dew point,
     u    UV index (1-12),
 
     D    Dawn*,
@@ -209,6 +216,24 @@ So, these two calls are the same:
     London: ⛅️ +7⁰C
 ```
 
+## Integrations
+
+Thanks to the ease of integrating *wttr.in* into any program, there are a
+plethora of popular integrations across various libraries, programming
+languages, and systems.
+
+*wttr.in* is compatible with:
+
+* terminal managers,
+* window managers,
+* editors,
+* chat clients,
+
+and more, these integrations enhance workflow efficiency by embedding weather information directly into user interfaces.
+
+See the full list of integrations here: [wttr.in integrations](doc/integrations.md)
+and some of them below.
+
 ### tmux
 
 When using in `tmux.conf`, you have to escape `%` with `%`, i.e. write there `%%` instead of `%`.
@@ -227,17 +252,19 @@ set -g status-right "$WEATHER ..."
 ```
 ![wttr.in in tmux status bar](https://wttr.in/files/example-tmux-status-line.png)
 
-### Weechat
+### WeeChat
 
-To embed in to an IRC ([Weechat](https://github.com/weechat/weechat)) client's existing status bar:
+To embed in to an IRC ([WeeChat](https://github.com/weechat/weechat)) client's existing status bar:
 
 ```
-/alias add wttr /exec -pipe "/set plugins.var.python.text_item.wttr all" url:wttr.in/Montreal?format=%l:+%c+%f+%h+%p+%P+%m+%w+%S+%s
+/alias add wttr /exec -pipe "/mute /set plugins.var.wttr" url:wttr.in/Montreal?format=%l:+%c+%f+%h+%p+%P+%m+%w+%S+%s;/wait 3 /item refresh wttr
 /trigger add wttr timer 60000;0;0 "" "" "/wttr"
-/eval /set weechat.bar.status.items ${weechat.bar.status.items},wttr
+/item add wttr "" "${plugins.var.wttr}"
+/eval /set weechat.bar.status.items ${weechat.bar.status.items},spacer,wttr
 /eval /set weechat.startup.command_after_plugins ${weechat.startup.command_after_plugins};/wttr
+/wttr
 ```
-![wttr.in in weechat status bar](https://i.imgur.com/IyvbxjL.png)
+![wttr.in in WeeChat status bar](https://i.imgur.com/XkYiRU7.png)
 
 
 ### conky
@@ -245,12 +272,19 @@ To embed in to an IRC ([Weechat](https://github.com/weechat/weechat)) client's e
 Conky usage example:
 
 ```
-${texeci 1800 curl wttr.in/kyiv_0pq_lang=uk.png 
+${texeci 1800 curl wttr.in/kyiv_0pq_lang=uk.png
   | convert - -transparent black $HOME/.config/conky/out.png}
 ${image $HOME/.config/conky/out.png -p 0,0}
 ```
 
-![wttr.in in weechat status bar](https://user-images.githubusercontent.com/3875145/172178453-9e9ed9e3-9815-426a-9a21-afdd6e279fc8.png)
+![wttr.in in conky](https://user-images.githubusercontent.com/3875145/172178453-9e9ed9e3-9815-426a-9a21-afdd6e279fc8.png)
+
+
+### IRC
+
+IRC integration example:
+
+* https://github.com/OpenSourceTreasure/Mirc-ASCII-weather-translate-pixel-editor
 
 ### Emojis support
 
@@ -295,6 +329,21 @@ $ cat ~/.config/fontconfig/fonts.conf
 In some cases, `tmux` and the terminal understanding of some emoji characters may differ, which may
 cause strange effects similar to that described in #579.
 
+### Squeak
+
+To embed into the world main docking bar:
+
+```smalltalk
+wttr := (UpdatingStringMorph on: [(WebClient httpGet: 'https://wttr.in/?format=%20%20%l:%20%C+%t') content] selector: #value)
+	stepTime: 60000;
+	useStringFormat;
+	yourself.
+dockingBar := World mainDockingBars first.
+dockingBar addMorph: wttr after: (dockingBar findA: ClockMorph).
+```
+
+![wttr.in integration in the Squeak world main docking bar](https://github.com/user-attachments/assets/4c2762b0-77ae-41a8-98db-3eb310d073bd)
+
 ## Data-rich output format (v2)
 
 In the experimental data-rich output format, that is available under the view code `v2`,
@@ -324,7 +373,7 @@ or, if you prefer Nerd Fonts instead of Emoji, `v2d` (day) or `v2n` (night):
 ```
 
 
-![data-reach output format](https://wttr.in/files/example-wttr-v2.png)
+![data-rich output format](https://wttr.in/files/example-wttr-v2.png)
 
 (The mode is experimental, and it has several limitations currently:
 
@@ -441,9 +490,11 @@ The result will look something like the following:
 
 Most of these values are self-explanatory, aside from `weatherCode`. The `weatherCode` is an enumeration which you can find at either [the WorldWeatherOnline website](https://www.worldweatheronline.com/developer/api/docs/weather-icons.aspx) or [in the wttr.in source code](https://github.com/chubin/wttr.in/blob/master/lib/constants.py).
 
+A smaller version `format=j2` without hourly data is also availble. Can work well for microcontrollers with limited memory.
+
 ### Prometheus Metrics Output
 
-The [Prometheus](https://github.com/prometheus/prometheus) Metrics format is a feature providing access to *wttr.in* data through an easy-to-parse format for monitoring systems, without requiring the user to create a complex script to reinterpret wttr.in's graphical output. 
+The [Prometheus](https://github.com/prometheus/prometheus) Metrics format is a feature providing access to *wttr.in* data through an easy-to-parse format for monitoring systems, without requiring the user to create a complex script to reinterpret wttr.in's graphical output.
 
 To fetch information in Prometheus format, use the following syntax:
 
@@ -549,167 +600,111 @@ in your language.
 
 ![Queries to wttr.in in various languages](https://pbs.twimg.com/media/C7hShiDXQAES6z1.jpg)
 
-## Windows Users
-
-There are currently two Windows related issues that prevent the examples found on this page from working exactly as expected out of the box. Until Microsoft fixes the issues, there are a few workarounds. To circumvent both issues you may use a shell such as `bash` on the [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10) or read on for alternative solutions.
-
-### Garbage characters in the output
-There is a limitation of the current Win32 version of `curl`. Until the [Win32 curl issue](https://github.com/chubin/wttr.in/issues/18#issuecomment-474145551) is resolved and rolled out in a future Windows release, it is recommended that you use Powershell’s `Invoke-Web-Request` command instead:
-- `(Invoke-WebRequest https://wttr.in).Content`
-
-### Missing or double wide diagonal wind direction characters
-The second issue is regarding the width of the diagonal arrow glyphs that some Windows Terminal Applications such as the default `conhost.exe` use. At the time of writing this, `ConEmu.exe`, `ConEmu64.exe` and Terminal Applications built on top of ConEmu such as Cmder (`cmder.exe`) use these double-wide glyphs by default. The result is the same with all of these programs, either a missing character for certain wind directions or a broken table in the output or both. Some third-party Terminal Applications have addressed the wind direction glyph issue but that fix depends on the font and the Terminal Application you are using.
-One way to display the diagonal wind direction glyphs in your Terminal Application is to use [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal-preview/9n0dx20hk701?activetab=pivot:overviewtab) which is currently available in the [Microsoft Store](https://www.microsoft.com/en-us/p/windows-terminal-preview/9n0dx20hk701?activetab=pivot:overviewtab). Windows Terminal is currently a preview release and will be rolled out as the default Terminal Application in an upcoming release. If your output is still skewed after using Windows Terminal then try maximizing the terminal window.
-Another way you can display the diagonal wind direction is to swap out the problematic characters with forward and backward slashes as shown [here](https://github.com/chubin/wttr.in/issues/18#issuecomment-405640892).
-
 ## Installation
 
-To install the application:
+This guide explains how to install wttr.in from the source code.
 
-1. Install external dependencies
-2. Install Python dependencies used by the service
-3. Configure IP2Location (optional)
-4. Get a WorldWeatherOnline API and configure wego
-5. Configure wttr.in
-6. Configure the HTTP-frontend service
+It is implemented as a *single static binary* with all assets (including fonts for PNG rendering) embedded inside.
+It has *zero runtime dependencies*, supports both HTTP and HTTPS natively,
+and does not need nginx, Apache, or any other web server in front.
 
-### Install external dependencies
+At the end of this installation you will have:
 
-wttr.in has the following external dependencies:
+- A clean, self-contained wttr.in service installed in `/wttr.in/`
+- A single executable binary (`/wttr.in/bin/srv`)
+- Configured caching, IP geolocation (GeoIP2), and location resolution (OpenCage)
+- The service, fully equivalent to the public wttr.in, is running on port 8080 (HTTP) and is ready to serve weather reports.
 
-* [golang](https://golang.org/doc/install), wego dependency
-* [wego](https://github.com/schachmat/wego), weather client for terminal
-
-After you install [golang](https://golang.org/doc/install), install `wego`:
-
-    $ go get -u github.com/schachmat/wego
-    $ go install github.com/schachmat/wego
-
-### Install Python dependencies
-
-Python requirements:
-
-* Flask
-* geoip2
-* geopy
-* requests
-* gevent
-
-If you want to get weather reports as PNG files, you'll also need to install:
-
-* PIL
-* pyte (>=0.6)
-* necessary fonts
-
-You can install most of them using `pip`.
-
-Some python package use LLVM, so install it first:
-
-    $ apt-get install llvm-7 llvm-7-dev
-
-If `virtualenv` is used:
-
-    $ virtualenv -p python3 ve
-    $ ve/bin/pip3 install -r requirements.txt
-    $ ve/bin/python3 bin/srv.py
-
-Also, you need to install the geoip2 database.
-You can use a free database GeoLite2 that can be downloaded from (http://dev.maxmind.com/geoip/geoip2/geolite2/).
-
-### Configure IP2Location (optional)
-
-If you want to use the IP2location service for IP-addresses that are not covered by GeoLite2,
-you have to obtain a API key of that service, and after that save into the `~/.ip2location.key` file:
-
-```
-$ echo 'YOUR_IP2LOCATION_KEY' > ~/.ip2location.key
-```
-
-If you don't have this file, the service will be silently skipped (it is not a big problem,
-because the MaxMind database is pretty good).
-
-### Installation with Docker
-
-* Install Docker
-* Build Docker Image
-* These files should be mounted by the user at runtime:
-
-```
-/root/.wegorc
-/root/.ip2location.key (optional)
-/app/airports.dat
-/app/GeoLite2-City.mmdb
-```
-
-### Get a WorldWeatherOnline key and configure wego
-
-To get a WorldWeatherOnline API key, you must register here:
-
-    https://developer.worldweatheronline.com/auth/register
-
-After you have a WorldWeatherOnline key, you can save it into the
-WWO key file: `~/.wwo.key`
-
-Also, you have to specify the key in the `wego` configuration:
-
-```json
-$ cat ~/.wegorc
-{
-	"APIKey": "00XXXXXXXXXXXXXXXXXXXXXXXXXXX",
-	"City": "London",
-	"Numdays": 3,
-	"Imperial": false,
-	"Lang": "en"
-}
-```
-
-The `City` parameter in `~/.wegorc` is ignored.
-
-### Configure wttr.in
-
-Configure the following environment variables that define the path to the local `wttr.in`
-installation, to the GeoLite database, and to the `wego` installation. For example:
+### System Preparation
 
 ```bash
-export WTTR_MYDIR="/home/igor/wttr.in"
-export WTTR_GEOLITE="/home/igor/wttr.in/GeoLite2-City.mmdb"
-export WTTR_WEGO="/home/igor/go/bin/wego"
-export WTTR_LISTEN_HOST="0.0.0.0"
-export WTTR_LISTEN_PORT="8002"
+sudo mkdir -p /wttr.in/{bin,cache,log,data,etc}
 ```
 
-
-### Configure the HTTP-frontend service
-
-It's recommended that you also configure the web server that will be used to access the service:
-
-```nginx
-server {
-	listen [::]:80;
-	server_name  wttr.in *.wttr.in;
-	access_log  /var/log/nginx/wttr.in-access.log  main;
-	error_log  /var/log/nginx/wttr.in-error.log;
-
-	location / {
-	    proxy_pass         http://127.0.0.1:8002;
-
-	    proxy_set_header   Host             $host;
-	    proxy_set_header   X-Real-IP        $remote_addr;
-	    proxy_set_header   X-Forwarded-For  $remote_addr;
-
-	    client_max_body_size       10m;
-	    client_body_buffer_size    128k;
-
-	    proxy_connect_timeout      90;
-	    proxy_send_timeout         90;
-	    proxy_read_timeout         90;
-
-	    proxy_buffer_size          4k;
-	    proxy_buffers              4 32k;
-	    proxy_busy_buffers_size    64k;
-	    proxy_temp_file_write_size 64k;
-
-	    expires                    off;
-	}
-}
+If you want to run the server as a dedicated user (recommended):
+```bash
+sudo useradd -r -s /bin/false -u 1000 wttr
+sudo chown -R wttr:wttr /wttr.in
 ```
+
+### Download GeoIP2 Database
+
+For automated IPs resolution:
+
+- Register at [MaxMind](https://www.maxmind.com) and download **GeoLite2-City.mmdb**.
+- Place it at: `/wttr.in/data/GeoLite2-City.mmdb`
+
+### Build the Binary
+
+```bash
+git clone https://github.com/chubin/wttr.in.git
+cd wttr.in
+
+# Build-time fonts (embedded in final binary)
+sudo apt-get install -y --no-install-recommends \
+  fontconfig fonts-dejavu-core fonts-noto-core fonts-noto-cjk \
+  fonts-wqy-zenhei fonts-symbola fonts-motoya-l-cedar fonts-lexi-gulim
+
+bash build.sh build
+```
+
+### Install the Binary
+
+```bash
+sudo cp srv /wttr.in/bin/srv
+sudo chown wttr:wttr /wttr.in/bin/srv
+```
+
+### Configuration
+
+Create `/wttr.in/config.yaml`:
+
+```yaml
+cache:
+  size: 50000
+
+ip:
+  ipCacheDb: /wttr.in/cache/geoip.db
+  ipCacheType: db
+  geoip2: /wttr.in/data/GeoLite2-City.mmdb
+
+geo:
+  locationCacheDb: /wttr.in/cache/geoloc.db
+  locationCacheType: db
+  nominatim:
+    - name: opencage
+      type: opencage
+      url: https://api.opencagedata.com/geocode/v1/json
+      token: "YOUR_OPENCAGE_TOKEN_HERE"
+
+weather:
+  wwo:
+    baseUrl: "http://wttr.in/{lat},{lon}?format=j1&lang={lang}"
+    # token: "YOUR_WWO_TOKEN"   # optional
+
+server:
+  portHttp: 8080
+  # portHttps: 8443
+  # tlsCertFile: /wttr.in/etc/fullchain.pem
+  # tlsKeyFile: /wttr.in/etc/privkey.pem
+```
+
+The configuration implies the use of OpenCage for geolocation (a token is required) and wttr.in as the source of weather data.
+If you want to use *WorldWeatherOnline*, you must register there to obtain a token and set the `baseUrl` accordingly.
+
+
+### Running the Service
+```bash
+cd /wttr.in
+sudo -u wttr ./bin/srv --config config.yaml
+```
+
+You can now access your instance at `http://your-server:8080` (e.g. `http://your-server:8080/London`).
+
+For production, create a systemd service. Cache and logs are stored under `/wttr.in/cache` and `/wttr.in/log`.
+
+## wttr.in usage stats
+
+As of April 2026, *wttr.in* handles around 100 million queries per day from 400,000 to 450,000 users, according to the access logs.
+
+![wttr.in usage stats](share/stats/stats.png)
